@@ -24,6 +24,8 @@ require('./models/userVerification')
 // --- Routes
 app.use(require("./routes/user"));
 app.use(require('./routes/clinic'))
+app.use(require('./routes/doctor'))
+app.use(require('./routes/slot'))
 // ---
 
 const PORT = process.env.PORT || 7000

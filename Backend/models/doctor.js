@@ -21,7 +21,7 @@ const doctorSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Clinic'
     },
-    emal: {
+    email: {
         type: String,
         required: true
     },
@@ -37,9 +37,8 @@ const doctorSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
-    feesId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Fees'
+    fees: {
+        type: Number
     }
 })
 

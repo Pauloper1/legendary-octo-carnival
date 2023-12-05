@@ -28,19 +28,11 @@ router.post('/api/register', async(req, res)=>{
         });
 
         //generate random 4 digit number 
-        // const randOTP = Math.floor(Math.random()*1000 + 1000)
-        
-        // //save the random number in the otpModel
-
-        // await OTP.create({
-        //     userId: newUser._id,
-        //     otp: randOTP,
-        //     expiresAt: Date.now()
-        // })
-        //send the number to register email id
+        //save the random number in the otpModel
         randOTP = otpGen(newUser)
+
+        //send the number to register email id
         mailer(randOTP, newUser.email)
-        //
 
 
     } catch (err) {
@@ -87,11 +79,54 @@ router.post('/api/verify', async(req, res)=>{
 
 })
 
-router.get('/api/user/:id', async(req, res)=>{
-    const userId = req.params.id
-    const user = await User.findById(userId)
-    // if(user.isVerified)
-})
+router.post('/api/login', async (req, res) => {
+    const { email, passwd } = req.body;
+  
+    try {
+
+      if(email == '' || passwd == ''){
+        return res.json({
+            status: false,
+            message: `Empty values are not allowed`
+        })
+      }  
+
+      const user = await User.findOne({ email });
+        
+      if (!user) {
+        return res.json({
+          status: false,
+          message: 'User not found',
+        });
+      }
+  
+      if (!user.isVerified) {
+        return res.json({
+          status: false,
+          message: 'User not verified',
+        });
+      }
+  
+    
+      if (user.passwd != passwd) {
+        return res.json({
+          status: false,
+          message: 'Incorrect password',
+        });
+      }
+  
+      res.json({
+        status: true,
+        message: 'User login successful',
+        user,
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: false,
+        message: `Error occurred while logging in: ${err.message}`,
+      });
+    }
+  })
 
 
 router.post('/api/delete-user/:id',async(req, res)=>{
