@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
-const Doctor = require('../models/doctor')
+const Doctor = require('../models/doctor');
+const doctor = require('../models/doctor');
 
 router.post('/api/register-doctor', async (req, res) => {
     try {
@@ -78,4 +79,6 @@ router.get('/api/all-doctors', async(req, res)=>{
         })
     }
 })
+
+
 module.exports = router;

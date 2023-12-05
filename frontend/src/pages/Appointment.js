@@ -24,15 +24,18 @@ import {
     Grid,
 } from "@chakra-ui/react";
 import { FaUserAlt, FaLock } from "react-icons/fa";
+import { useRadio, useRadioGroup } from '@chakra-ui/react';
+
 import { BASE_URL } from "../config";
 import { useNavigate } from "react-router-dom";
 import Navbar from '../components/Navbar'
+import RadioCard from '../components/RadioCard'
 
 const Appointment = () => {
     const navigate = useNavigate();
     const toast = useToast()
     const [selectedDoctor, setSelectedDoctor] = useState("");
-    const [selectedDate, setSelectedDate] = useState("");
+    const [selectedDate, setSelectedDate] = useState(getTodayDate());
     const [selectedSlot, setSelectedSlot] = useState("");
     const [isTermsChecked, setIsTermsChecked] = useState(false);
     const [slots, setSlots] = useState([])
@@ -40,17 +43,21 @@ const Appointment = () => {
     const [doctor, setDoctor] = useState({})
 
 
-    const slotToggle = (e)=>{
-        if(isSlotToggle){
+    const slotToggle = (e) => {
+        console.log('Toggle', isSlotToggle)
+        if (isSlotToggle) {
             setSelectedSlot(e)
-            
-        } else {
+
+        } else if (e == selectedDate) {
             setSelectedSlot("")
+        } else {
+
         }
+        console.log('Selected Slot', selectedSlot)
         setSlotToggle(!isSlotToggle)
     }
 
-    const slotTimeSetter = (hr, min)=>{
+    const slotTimeSetter = (hr, min) => {
         const date = new Date()
         date.setHours(hr, min, 0, 0)
         console.log(date)
@@ -80,21 +87,21 @@ const Appointment = () => {
         // Add more slots as needed
     ];
 
-    const handleConfirm = async() => {
+    const handleConfirm = async () => {
         // Add your logic for handling the 'Confirm' button
         // Redirect to the next step or perform other actions
         const response = await fetch(`${BASE_URL}/api/confirm-slot`,
-        {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              doctorId: doctor._id,
-              userId: localStorage.getItem('user'),
-              dateTime: selectedSlot
-            }),
-          }
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    doctorId: doctor._id,
+                    userId: localStorage.getItem('user'),
+                    dateTime: selectedSlot
+                }),
+            }
         )
     };
 
@@ -103,10 +110,8 @@ const Appointment = () => {
             var doctorArr = await fetch(`${BASE_URL}/api/all-doctors`)
             doctorArr = await doctorArr.json()
             doctorArr = doctorArr.doctor
-            // console.log(doctorArr[0])
             setDoctor(doctorArr[0])
-            // console.log(doctorArr)
-            // const doctor = await doctorArr.json()
+
             console.log(doctor)
         } catch (err) {
             toast({
@@ -134,9 +139,17 @@ const Appointment = () => {
     }
 
     //fetching already booked slots of that doctor
-    const fetchDoctorSlots = async () => {
+    const fetchDoctorSlots = async ({ selectedDate }) => {
+        console.log(selectedDate)
+        const doctorId = doctor._id
         try {
-            const slots_ = await fetch(`${BASE_URL}/api/booked-slots/:id`)
+            const slots_ = await fetch(`${BASE_URL}/api/doctor-slots`, {
+                method: 'POST',
+                headers: {
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify({ doctorId, dateTime: selectedDate })
+            })
             setSlots(slots_)
 
         } catch (err) {
@@ -153,13 +166,35 @@ const Appointment = () => {
         console.log(selectedDate)
         console.log(e.target.value)
         setSelectedDate(e.target.value)
+        fetchDoctorSlots(selectedDate)
         //fetch slots from today
+
         //check if a slot is there in the fetched slots make it unavailabe.
     }
+
+    function getTodayDate() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        const day = today.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    const { getRootProps, getRadioProps } = useRadioGroup({
+        name: 'appointmentTime',
+        // defaultValue: '10:00 AM',
+        onChange: console.log,
+    })
+
+
+    const group = getRootProps()
+
+
+    
     useEffect(() => {
         fetchDoctor()
 
-    }, [selectedDate])
+    }, [])
 
     return (
         <>
@@ -199,6 +234,7 @@ const Appointment = () => {
                             type="date"
                             value={selectedDate}
                             onChange={handleDateChange}
+
                         />
                     </FormControl>
 
@@ -229,6 +265,18 @@ const Appointment = () => {
                                 </Box>
                             ))}
                         </Grid>
+                        <HStack {...group}>
+                            {defaultSlots.map((value) => {
+                                const label = value.label
+                                console.log('value',value)
+                                const radio = getRadioProps({ label });
+                                return (
+                                    <RadioCard key={value} {...radio}>
+                                        {label}
+                                    </RadioCard>
+                                );
+                            })}
+                        </HStack>
                     </FormControl>
                 </VStack>
 

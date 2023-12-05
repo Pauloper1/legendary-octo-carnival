@@ -5,6 +5,7 @@ const User = mongoose.model('User')
 const OTP = mongoose.model('OTP')
 const mailer = require('../controllers/mailer')
 const otpGen = require('../controllers/otpGen')
+const Slot = mongoose.model('Slot')
 router.post('/api/register', async(req, res)=>{
     const user = req.body;
     console.log(user)
@@ -172,6 +173,24 @@ router.get('/api/all-users', async (req, res) => {
     }
 });
 
+router.get('/api/user-slots', async(req, res)=>{
 
+    try{
+        const userId = req.body.userId
+        //Recent date to be on top
+        const allUserSlots = await Slot.find({ userId: userId }).sort({ DateTime: -1 });
+        res.json({
+            status: true,
+            message:`Slots fetched`,
+            slots: allUserSlots
+        })
+    }catch(err){
+        res.json({
+            status: false,
+            message:"Error while fetching all slots"
+        })
+    }
+
+})
 
 module.exports = router
